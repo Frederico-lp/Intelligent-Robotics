@@ -32,14 +32,10 @@ class TurtleBot:
 		self.rate = rospy.Rate(10)		
 		self.originaltime = rospy.Time.now().to_sec()
 		self.state = 0
-		self.d = 1
-		self.angular = 0
-		self.distance = 0
-		self.min_dist = 0.5
-		self.max_dist = 1
-		self.follow_dir = -1
-		self.criterium = False
-		self.stop = False
+
+		self.min_dist = 0.3
+		self.max_dist = 0.4
+
 		rospy.on_shutdown(self.shutdown)
 
 
@@ -73,7 +69,7 @@ class TurtleBot:
 
 	def move_ahead(self):
 		velocity = Twist()
-		velocity.linear.x = 0.3
+		velocity.linear.x = 0.1
 		velocity.angular.z = 0
 		return velocity
 
@@ -85,7 +81,7 @@ class TurtleBot:
 
 	def move_diag_right(self):
 		velocity = Twist()
-		velocity.linear.x = 0.1
+		velocity.linear.x = 0.05
 		velocity.angular.z = -0.3
 		return velocity
 
@@ -97,8 +93,14 @@ class TurtleBot:
 
 	def move_diag_left(self):
 		velocity = Twist()
-		velocity.linear.x = 0.1
+		velocity.linear.x = 0.05
 		velocity.angular.z = 0.3
+		return velocity
+	
+
+	def move_backwards(self):
+		velocity = Twist()
+		velocity.linear.x = -0.1
 		return velocity
 	
 		
@@ -108,77 +110,69 @@ class TurtleBot:
 		while not rospy.is_shutdown():
 			vel_msg = Twist()	
 
+			vel_msg = self.move_ahead()
+
 			if self.state == 0:
-				vel_msg = self.find_wall()
-			elif self.state == 1:
-				vel_msg = self.turn_right()
-			elif self.state == 2:
 				vel_msg = self.move_ahead()
-			elif self.state == 3:
+			elif self.state == 1:
 				vel_msg = self.turn_left()
+			elif self.state == 2:
+				vel_msg = self.turn_right()
+			elif self.state == 3:
+			 	vel_msg = self.move_diag_left()
 			elif self.state == 4:
-				vel_msg = self.move_diag_right()
-			elif self.state == 5:
-				vel_msg = self.move_diag_left()
+			 	vel_msg = self.move_diag_right()
+			elif self.state == -1:
+				vel_msg = self.move_backwards()
 			else:
 				rospy.logerr('Unknown state!')
-
-	
 
 			self.velocity_publisher.publish(vel_msg)
 			self.rate.sleep()
 		
 	def shutdown(self):
-		self.velocity_publisher.publish(Twist())
+		self.velocity_publisher.publish(Twist()) # Stop movement
+		rospy.loginfo("Shutting down")
 		rospy.sleep(1)
 		
 	def callback_laser(self, msg):
+	
 		laser_range = np.array(msg.ranges)
 		#self.distance = np.min(laser_range)
 
-		front = min(laser_range[70:110])
-		left = min(laser_range[0:40])
-		right = min(laser_range[140:180])
+		left_dist = min(laser_range[60:120])
+		front_dist = min(laser_range[0:60])
+		right_dist = min(laser_range[240:300])
+		
+		print(left_dist, front_dist, right_dist)
 
-		velocity = Twist()
 
-		if front > self.max_dist and left > self.max_dist and right > self.max_dist:
+		if (front_dist >= inf and left_dist >= inf and right_dist >= inf):
 			self.state = 0
-		elif self.follow_dir == -1:
-			if left < self.max_dist:
-				self.state = 1
-				self.follow_dir = 0
-				rospy.loginfo("following left wall")
+		elif (right_dist < self.min_dist or left_dist < self.min_dist):
+			self.state = -1
+		elif (left_dist < front_dist and left_dist < right_dist or front_dist < right_dist):
+			self.state = 1
+		elif (right_dist < self.min_dist):
+			self.state = 3
+		elif (right_dist > self.max_dist and right_dist < front_dist):
+			self.state = 4
+		else:
+			self.state = 0
 
-			elif right < self.max_dist:
-				self.state = 3
-				self.follow_dir = 1
-				rospy.loginfo("follow right wall")
+		print(self.state)
+		
+		
 
-			else:
-				self.state = 2
-
-		if self.follow_dir == 0: #follow left wall
-			if left > self.max_dist and front > self.min_dist:
-				self.state = 4
-			elif left < self.max_dist and front > self.min_dist:
-				self.state = 2
-			elif left < self.max_dist and front < self.min_dist:
-				self.state = 3
-			else:
-				rospy.loginfo("follow left wall not running")
-
-		if self.follow_dir == 0: #follow right wall
-			if right > self.max_dist and front > self.min_dist:
-				self.state = 4
-			elif right < self.max_dist and front > self.min_dist:
-				self.state = 2
-			elif right < self.max_dist and front < self.min_dist:
-				self.state = 3
-			else:
-				rospy.loginfo("follow right wall not running")
-
-			
+		# if (front_dist < right_dist):
+		# 	self.state = 1
+		# elif (right_dist < front_dist):
+		# 	if (right_dist < self.min_dist):
+		# 		self.state = 2 
+		# 	elif (right_dist > self.max_dist):
+		# 		self.state = 1
+		# 	else:
+		# 		self.state = 0			
 		
 		
 
