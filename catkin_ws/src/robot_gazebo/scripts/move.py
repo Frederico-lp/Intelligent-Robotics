@@ -29,7 +29,7 @@ class TurtleBot:
 		self.min_dist = 0.1
 		self.max_dist = 0.7
 
-		self.ideal_dist = 0.25
+		self.ideal_dist = 0.35
 
 		rospy.on_shutdown(self.shutdown)
 
@@ -124,7 +124,6 @@ class TurtleBot:
 	def callback_laser(self, msg):
 	
 		laser_range = np.array(msg.ranges)
-		#self.distance = np.min(laser_range)
 
 		left_dist = min(laser_range[60:120])
 		if (left_dist >= self.max_dist):
@@ -142,22 +141,17 @@ class TurtleBot:
 
 		if (front_dist >= inf and left_dist >= inf and right_dist >= inf):
 			self.state = 0
+		elif (min(left_dist, front_dist, right_dist) < self.ideal_dist and front_dist < self.ideal_dist):
+			self.state = -1
 		elif (left_dist <= front_dist and left_dist < right_dist):
 			self.state = 1
 		elif (front_dist < right_dist or front_dist < self.ideal_dist):
 			self.state = 1
-		elif (min(left_dist, front_dist, right_dist) < self.ideal_dist):
-			if (front_dist < 0.2):
-				self.state = -1
-			else:
-				self.state = 1
 		else:
 			if (right_dist < self.ideal_dist):
 				self.state = 3
 			else:
 				self.state = 4
-
-		
 
 		print(self.state)
 		
