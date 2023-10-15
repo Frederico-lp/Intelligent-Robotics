@@ -29,7 +29,7 @@ class TurtleBot:
 		self.min_dist = 0.1
 		self.max_dist = 0.7
 
-		self.ideal_dist = 0.35
+		self.ideal_dist = 0.3
 
 		rospy.on_shutdown(self.shutdown)
 
@@ -68,7 +68,7 @@ class TurtleBot:
 	def move_diag_right(self):
 		velocity = Twist()
 		velocity.linear.x = 0.1
-		velocity.angular.z = -0.4
+		velocity.angular.z = -0.5
 		return velocity
 
 
@@ -80,7 +80,7 @@ class TurtleBot:
 	def move_diag_left(self):
 		velocity = Twist()
 		velocity.linear.x = 0.1
-		velocity.angular.z = 0.4
+		velocity.angular.z = 0.5
 		return velocity
 	
 
