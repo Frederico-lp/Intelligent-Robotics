@@ -1,5 +1,5 @@
 ## Prerequisites
-- ROS Noetic
+- [ROS Noetic](https://wiki.ros.org/noetic/Installation/Ubuntu)
 
 ## How to compile:
 In the `catkin_ws/` directory:
@@ -14,6 +14,12 @@ source /opt/ros/noetic/setup.bash
 ```
 ```bash
 source ./devel/setup.bash
+```
+It can be convenient to automatically source this script every time a new shell is launched. These commands will do that for you.
+```bash
+echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+echo "source ./devel/setup.bash" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 Start the ROS core:
