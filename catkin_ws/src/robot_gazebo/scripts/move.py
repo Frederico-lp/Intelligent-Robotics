@@ -5,24 +5,17 @@ from turtlesim.msg import Pose
 from math import pow, atan2, sqrt, cos, sin, inf
 from sensor_msgs.msg import LaserScan
 import numpy as np
+from enum import Enum
 
-'''
-STATES
 
-0	Initial (wait for scan)
-1	Go down
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-'''
+class State(Enum):
+	MOVE_AHEAD = 0
+	MOVE_BACKWARDS = -1
+	TURN_LEFT = 1
+	TURN_RIGHT = 2
+	MOVE_DIAG_LEFT = 3
+	MOVE_DIAG_RIGHT = 4
+
 
 class TurtleBot:
  
@@ -33,27 +26,20 @@ class TurtleBot:
 		self.originaltime = rospy.Time.now().to_sec()
 		self.state = 0
 
-		self.min_dist = 0.3
-		self.max_dist = 0.4
+		self.min_dist = 0.1
+		self.max_dist = 0.7
+
+		self.ideal_dist = 0.25
 
 		rospy.on_shutdown(self.shutdown)
 
-
-	# Publish linear and angular velocities for for finding wall
-	def find_wall(self):
-		velocity = Twist()
-		velocity.linear.x = 0.3
-		velocity.angular.z = 0
-		return velocity
 		
 	def turn_left(self):
 		velocity = Twist()
 		velocity.linear.x = 0
 		velocity.angular.z = 0.3
 		return velocity
-
-
-
+	
 
 	def turn_right(self):
 		velocity = Twist()
@@ -81,8 +67,8 @@ class TurtleBot:
 
 	def move_diag_right(self):
 		velocity = Twist()
-		velocity.linear.x = 0.05
-		velocity.angular.z = -0.3
+		velocity.linear.x = 0.1
+		velocity.angular.z = -0.4
 		return velocity
 
 
@@ -93,8 +79,8 @@ class TurtleBot:
 
 	def move_diag_left(self):
 		velocity = Twist()
-		velocity.linear.x = 0.05
-		velocity.angular.z = 0.3
+		velocity.linear.x = 0.1
+		velocity.angular.z = 0.4
 		return velocity
 	
 
@@ -141,24 +127,37 @@ class TurtleBot:
 		#self.distance = np.min(laser_range)
 
 		left_dist = min(laser_range[60:120])
-		front_dist = min(laser_range[0:60])
-		right_dist = min(laser_range[240:300])
+		if (left_dist >= self.max_dist):
+			left_dist = inf
 		
-		print(left_dist, front_dist, right_dist)
+		front_dist = min(laser_range[0:60])
+		if (front_dist >= self.max_dist):
+			front_dist = inf
 
+		right_dist = min(laser_range[240:300])
+		if (right_dist >= self.max_dist):
+			right_dist = inf
+
+		print(left_dist, front_dist, right_dist)
 
 		if (front_dist >= inf and left_dist >= inf and right_dist >= inf):
 			self.state = 0
-		elif (right_dist < self.min_dist or left_dist < self.min_dist):
-			self.state = -1
-		elif (left_dist < front_dist and left_dist < right_dist or front_dist < right_dist):
+		elif (left_dist <= front_dist and left_dist < right_dist):
 			self.state = 1
-		elif (right_dist < self.min_dist):
-			self.state = 3
-		elif (right_dist > self.max_dist and right_dist < front_dist):
-			self.state = 4
+		elif (front_dist < right_dist or front_dist < self.ideal_dist):
+			self.state = 1
+		elif (min(left_dist, front_dist, right_dist) < self.ideal_dist):
+			if (front_dist < 0.2):
+				self.state = -1
+			else:
+				self.state = 1
 		else:
-			self.state = 0
+			if (right_dist < self.ideal_dist):
+				self.state = 3
+			else:
+				self.state = 4
+
+		
 
 		print(self.state)
 		
