@@ -26,7 +26,7 @@ class TurtleBot:
 		self.originaltime = rospy.Time.now().to_sec()
 		self.state = 0
 
-		self.min_dist = 0.15
+		self.min_dist = 0.25
 		self.max_dist = 0.7
 
 		self.target_dist = 0.3
@@ -132,25 +132,13 @@ class TurtleBot:
 			else:
 				self.state = 4
 		else:
-			# There is something on the back
+			# There is something on the back, and nothing of interest on either left, front or right
 			self.state = 1
 
 
 		if (self.state != -2):
 			print(left_dist, front_dist, right_dist)
 			print(self.state)
-		
-
-		# if (front_dist < right_dist):
-		# 	self.state = 1
-		# elif (right_dist < front_dist):
-		# 	if (right_dist < self.min_dist):
-		# 		self.state = 2 
-		# 	elif (right_dist > self.max_dist):
-		# 		self.state = 1
-		# 	else:
-		# 		self.state = 0			
-		
 		
 
 if __name__ == '__main__':
