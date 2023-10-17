@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <sdf version='1.7'>
   <model name='wall'>
-    <pose>0 0 0 0 0 0</pose>
+    <pose>-1.4 0.76 0 0 0 0</pose>
     <static>true</static>
     <link name="link">
       <visual name="visual">
@@ -11,7 +11,7 @@
               model://blender_wall_model/meshes/ri_wall.stl
               
             </uri>
-            <scale>-2 -2 -2</scale>
+            <scale>2 -2 2</scale>
           </mesh>
         </geometry>
       </visual>
@@ -22,7 +22,7 @@
               model://blender_wall_model/meshes/ri_wall.stl
               
             </uri>
-            <scale>-2 -2 -2</scale>
+            <scale>2 -2 2</scale>
           </mesh>
         </geometry>
       </collision>
