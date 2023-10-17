@@ -12,7 +12,7 @@
     </include>
   
     <include>
-      <uri>model://model_wall</uri>
+      <uri>model://blender_wall_model</uri>
     </include>
   
   </world>

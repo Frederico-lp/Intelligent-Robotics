@@ -1,0 +1,32 @@
+<?xml version='1.0'?>
+<sdf version='1.7'>
+  <model name='wall'>
+    <pose>0 0 0 0 0 0</pose>
+    <static>true</static>
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>
+              model://blender_wall_model/meshes/ri_wall.stl
+              
+            </uri>
+            <scale>-2 -2 -2</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>
+              model://blender_wall_model/meshes/ri_wall.stl
+              
+            </uri>
+            <scale>-2 -2 -2</scale>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    <allow_auto_disable>1</allow_auto_disable>
+  </model>
+</sdf>
