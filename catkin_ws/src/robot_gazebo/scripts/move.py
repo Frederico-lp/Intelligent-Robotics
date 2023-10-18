@@ -2,6 +2,7 @@
 import rospy
 from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
+from nav_msgs.msg import Odometry
 from math import pow, atan2, sqrt, cos, sin, inf
 from sensor_msgs.msg import LaserScan
 import numpy as np
@@ -23,7 +24,6 @@ class TurtleBot:
 		rospy.init_node('turtlebot_node', anonymous=True)
 		self.velocity_publisher = rospy.Publisher('cmd_vel', Twist, queue_size=10)
 		self.rate = rospy.Rate(10)		
-		self.originaltime = rospy.Time.now().to_sec()
 		self.state = 0
 
 		self.min_dist = 0.25
@@ -74,7 +74,7 @@ class TurtleBot:
 		
 	def move(self):
 		rospy.Subscriber('/scan', LaserScan, self.callback_laser)
-		
+		rospy.Subscriber('odom', Odometry, self.pose_callback)
 		while not rospy.is_shutdown():
 			vel_msg = Twist()	
 
@@ -103,10 +103,14 @@ class TurtleBot:
 	def shutdown(self):
 		self.velocity_publisher.publish(self.stop())
 		rospy.loginfo("Shutting down")
-		rospy.sleep(1)
 		
+	def pose_callback(self, msg):
+		x = msg.pose.pose.position.x
+		y = msg.pose.pose.position.y
+		if (x < 1.5 and x > 1.15 and y > -1.5 and y < -1.15):
+			self.state = -2
+
 	def callback_laser(self, msg):
-	
 		laser_range = np.array(msg.ranges)
 		laser_range = [value if value <= self.max_dist else inf for value in laser_range]
 
@@ -116,15 +120,19 @@ class TurtleBot:
 
 		right_dist = min(laser_range[240:300])
 
-		if all(value >= inf for value in laser_range):
-			self.state = -2 # STOP
-			rospy.loginfo("Stopped")
+		if (self.state == -2):
+			return
+		elif all(value >= inf for value in laser_range):
+			self.state = 0
 		elif (front_dist < self.target_dist):
-			self.state = -1
+			if (left_dist <= self.min_dist):
+				self.state = 1
+			else:
+				self.state = -1
 		elif ((left_dist <= front_dist and left_dist < right_dist)
 			or (front_dist < right_dist or front_dist < self.target_dist)
 			or (front_dist < self.target_dist and right_dist < self.target_dist)
-			or (right_dist < self.min_dist)):
+			or (right_dist <= self.min_dist)):
 			self.state = 1
 		elif (right_dist < inf):
 			if (right_dist < self.target_dist):
@@ -135,10 +143,8 @@ class TurtleBot:
 			# There is something on the back, and nothing of interest on either left, front or right
 			self.state = 1
 
-
-		if (self.state != -2):
-			print(left_dist, front_dist, right_dist)
-			print(self.state)
+		print("Distances: ", left_dist, front_dist, right_dist)
+		print("Current state: ", self.state)
 		
 
 if __name__ == '__main__':
