@@ -16,6 +16,7 @@ class State(Enum):
 	TURN_RIGHT = 2
 	MOVE_DIAG_LEFT = 3
 	MOVE_DIAG_RIGHT = 4
+	STOP = -2
 
 
 class TurtleBot:
