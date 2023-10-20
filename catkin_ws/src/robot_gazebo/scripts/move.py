@@ -31,9 +31,10 @@ class TurtleBot:
 		self.max_dist = 0.7
 
 		self.target_dist = 0.3
-
+		self.start_time = -1
+		self.stop_time = -1
+	
 		rospy.on_shutdown(self.shutdown)
-
 		
 	def turn_left(self):
 		velocity = Twist()
@@ -76,6 +77,10 @@ class TurtleBot:
 	def move(self):
 		rospy.Subscriber('/scan', LaserScan, self.callback_laser)
 		rospy.Subscriber('odom', Odometry, self.pose_callback)
+
+		# Get start_time
+		turtle.start_time = rospy.get_time()
+		print("Start time: ", turtle.start_time)
 		while not rospy.is_shutdown():
 			vel_msg = Twist()	
 
@@ -88,9 +93,9 @@ class TurtleBot:
 			elif self.state == 2:
 				vel_msg = self.turn_right()
 			elif self.state == 3:
-			 	vel_msg = self.move_diag_left()
+				vel_msg = self.move_diag_left()
 			elif self.state == 4:
-			 	vel_msg = self.move_diag_right()
+				vel_msg = self.move_diag_right()
 			elif self.state == -1:
 				vel_msg = self.move_backwards()
 			elif self.state == -2:
@@ -108,7 +113,15 @@ class TurtleBot:
 	def pose_callback(self, msg):
 		x = msg.pose.pose.position.x
 		y = msg.pose.pose.position.y
+
+
+		if (self.state != -2):
+			print("Elapsed time: ", rospy.get_time() -self.start_time) 
+
 		if (x < 1.5 and x > 1.15 and y > -1.5 and y < -1.15):
+			if (self.state != -2):
+				self.stop_time = rospy.get_time()
+				print("Elapsed time until stop: ", self.stop_time - self.start_time)
 			self.state = -2
 
 	def callback_laser(self, msg):
