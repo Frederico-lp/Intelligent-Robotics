@@ -5,10 +5,11 @@
 
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro'" />
 
-    <arg name="x" default="-1.5"/>
-    <arg name="y" default="0"/>
-    <arg name="z" default="0"/>
+  <arg name="x" default="-1.5"/>
+  <arg name="y" default="0"/>
+  <arg name="z" default="0"/>
+  <arg name="yaw" default="0"/>
 
-    <node name="my_robot" pkg="gazebo_ros" type="spawn_model" output="screen"
-          args="-urdf -param robot_description -model m2wr -x $(arg x) -y $(arg y) -z $(arg z)" />
+  <node name="my_robot" pkg="gazebo_ros" type="spawn_model" output="screen"
+        args="-urdf -param robot_description -model m2wr -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw)" />
 </launch>
